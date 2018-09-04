@@ -1,0 +1,24 @@
+# Monte Carlo (bread and butter)
+
+```{r}
+alpha = 0.01
+B = 10^5
+
+monte_carlo = function(h, rf, B = 10^5, alpha = 0.01)
+{
+  X = rf(B)
+  Y = mean(h(X))
+  sigma.Y = sd(h(X))
+  IC.Y = c(Y - (qnorm(1-0.5*alpha)*sigma.Y)/sqrt(B), 
+           Y + (qnorm(1-0.5*alpha)*sigma.Y)/sqrt(B))
+  return(list(mean = Y, sigma = sigma.Y, IC = IC.Y))
+}
+
+h1 = function(x) { 6*exp(-x^2)*(x >= -2)*(x <= 4) }
+rf1 = function(B) runif(B, -2, 4)
+monte_carlo(h1, rf1)
+
+h2 = function(x) { exp(-x^2)*(x >= -2)*(x <= 4)/dnorm(x, 0, sqrt(0.5))}
+rf2 = function(B) rnorm(B, 0, sqrt(0.5))
+monte_carlo(h2, rf2)
+```

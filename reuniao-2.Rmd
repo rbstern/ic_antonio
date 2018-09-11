@@ -5,7 +5,7 @@ date: "September 4, 2018"
 output: html_document
 ---
 
-# Problema
+# Algoritmo de Metropolis-Hastings.
 
 Temos $X|\theta ~ N(\theta,1)$ e $\theta \sim N(0,1)$.
 Queremos calcular propriedades de $f(\theta|X=2)$.
@@ -43,3 +43,15 @@ mean(theta) # estimar E[theta|X = 2]
 mean(theta^2) - mean(theta)^2 # estimar V[theta|X = 2]
 mean(theta > 2) # estimar P(theta > 2|X = 2)
 ```
+
+## Problema 1
+
+Temos $\theta \sim \text{Cauchy}$ e
+$X|\theta \sim N(0,1)$.
+Calcular $E[\theta|X=2]$ e $\V[\theta|X=2]$.
+
+## Problema 2
+
+Temos $\theta \sim \Gamma(1,1)$ e
+$X|\theta \sim Exp(\theta)$.
+Calcular $E[\theta|X=0.5]$ e $\V[\theta|X=0.5]$.

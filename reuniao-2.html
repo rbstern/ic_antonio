@@ -125,8 +125,8 @@ $(document).ready(function () {
 </div>
 
 
-<div id="problema" class="section level1">
-<h1>Problema</h1>
+<div id="algoritmo-de-metropolis-hastings." class="section level1">
+<h1>Algoritmo de Metropolis-Hastings.</h1>
 <p>Temos <span class="math inline">\(X|\theta ~ N(\theta,1)\)</span> e <span class="math inline">\(\theta \sim N(0,1)\)</span>. Queremos calcular propriedades de <span class="math inline">\(f(\theta|X=2)\)</span>. Sabemos que</p>
 <p><span class="math display">\[
 \begin{align*}
@@ -155,8 +155,16 @@ theta = metropolis()</code></pre>
 <pre><code>## [1] 0.9983554</code></pre>
 <pre class="r"><code>mean(theta^2) - mean(theta)^2 # estimar V[theta|X = 2]</code></pre>
 <pre><code>## [1] 0.4988517</code></pre>
-<pre class="r"><code>mean(theta &gt; 1.4) # estimar P(theta &gt; 2|X = 2)</code></pre>
-<pre><code>## [1] 0.28491</code></pre>
+<pre class="r"><code>mean(theta &gt; 2) # estimar P(theta &gt; 2|X = 2)</code></pre>
+<pre><code>## [1] 0.07826</code></pre>
+<div id="problema-1" class="section level2">
+<h2>Problema 1</h2>
+<p>Temos <span class="math inline">\(\theta \sim \text{Cauchy}\)</span> e <span class="math inline">\(X|\theta \sim N(0,1)\)</span>. Calcular <span class="math inline">\(E[\theta|X=2]\)</span> e <span class="math inline">\(\V[\theta|X=2]\)</span>.</p>
+</div>
+<div id="problema-2" class="section level2">
+<h2>Problema 2</h2>
+<p>Temos <span class="math inline">\(\theta \sim \Gamma(1,1)\)</span> e <span class="math inline">\(X|\theta \sim Exp(\theta)\)</span>. Calcular <span class="math inline">\(E[\theta|X=0.5]\)</span> e <span class="math inline">\(\V[\theta|X=0.5]\)</span>.</p>
+</div>
 </div>
 
 

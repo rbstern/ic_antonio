@@ -1,0 +1,40 @@
+---
+title: "reuniao-3"
+author: "Guiherme Antonio"
+date: "September 25, 2018"
+output: html_document
+---
+
+Queremos estudar o caso em que
+$X|Y \sim N(Y, 1)$ e
+$Y|X \sim N(X/2, 1/\sqrt(2))$
+
+```{r}
+gibbs = function(B = 10^5)
+{
+  data = matrix(NA, nrow = B, ncol = 2)
+  colnames(data) = c("X", "Y")
+  data[1,] = c(0, 0) # Valor inicial é arbitrário
+  for(ii in 2:B)
+  {
+    if(runif(1) < 0.5) 
+      data[ii,] = c(data[ii-1,1],
+                    rnorm(1, .5*data[ii-1, 1], 1/sqrt(2)))
+    else 
+      data[ii,] = c(rnorm(1, data[ii-1, 2], 1),
+                    data[ii-1,2])
+  }
+  data
+}
+
+data = gibbs()
+plot(as.ts(data[,1]))
+plot(density(data[,1]))
+plot(density(data[,2]))
+```
+
+Para a proxima reunião ler o material de Gibbs (Gelman) e
+implementar o Gibbs para
+$X|\lambda \sim \text{Poisson}(\lambda)$ e
+$\lambda|X \sim \text{Gamma}(3+X,6)$.
+(exercicio 8.91 das notas de aula de Probabilidade).

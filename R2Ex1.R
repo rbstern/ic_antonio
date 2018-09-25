@@ -1,3 +1,5 @@
+library(tidyverse)
+
 metropolis = function(B = 10^5)
 {
   theta = rep(NA, B)
@@ -18,5 +20,7 @@ theta = metropolis()
 mean(theta)
 mean(theta^2) - mean(theta)^2
 
+plot(as.ts(theta))
+plot(density(theta))
 
 #Provavelmente x|theta é N(theta,1) , não N(0,1)

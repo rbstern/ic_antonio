@@ -15,19 +15,16 @@ gibbs = function(B = 10^5)
   data
 }
 
-
 #Adequando a questão 8.91, a = 3, b = 5
-
-
-
 data = gibbs()
 plot(as.ts(data[,1]))
-plot(density(data[,1]))
+barplot(table(data[,1])/sum(table(data[,1])))
 plot(density(data[,2]))
-plot(sort(rgamma(10^5,3,5)),sort(data[,2])) #lambda ~ gamma(a,b)
+
+#plot(sort(rgamma(10^5,3,5)),sort(data[,2])) #lambda ~ gamma(a,b)
+qqplot(rgamma(10^5,3,5), data[,2])
 
 mean(data[,1])  #E[X] = a/b = 0.6
 mean(data[,2]) #E[Lambda] = a/b = 0.6
 var(data[,1]) # Var[X] = a*(b+1)/b² = 0.72
 var(data[,2]) #Var[Lambda] = a/b² = 0.12
-

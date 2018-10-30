@@ -1,0 +1,80 @@
+---
+title: "reuniao-4"
+author: "Guiherme Antonio"
+date: "October 30, 2018"
+output: html_document
+---
+
+Temos $X$ uma imagem observada e
+$Y$ a verdadeira imagem que queremos reconstruir.
+Ambos são matrizes $n$ por $m$ e
+que assumem valores em $\{0,1\}$
+(pois, a imagem é em preto e branco, por hora).
+Definimos $V(i,j)$ os pixels vizinhos ao pixel $(i,j)$ e
+tomamos este conjunto de tal forma que,
+se $(i^*,j^*) \in V(i,j)$, então 
+$(i,j) \in V(i^*,j^*)$.
+seja $y$ uma possível configuração de $Y$ e
+$x$ uma possível configuração de $X$,
+definimos $L(i,j,x,y)$ como o quão adequado
+está o pixel $i$ e $j$ na imagem $y$ em relação a $x$.
+É comodo usarmos a expressão
+
+$$
+ L(i,j,x,y) = \alpha I(y_{i,j} \neq x_{i,j}) +
+ (1-\alpha)\sum_{v \in V(i,j)}I(y_{i,j} \neq y_v)
+$$
+Finalmente, definimos
+$$
+ \begin{align*}
+  P(Y = y|X = x) &= \prod_{i,j}\exp(-L(i,j,x,y)) \\
+  \log(P(Y = y|X = x)) &= -\sum_{i,j}L(i,j,x,y)
+ \end{align*}
+$$
+Se $y$ e $y^*$ diferem apenas em relação ao pixel $(i,j)$,
+então
+
+$$
+ \begin{align*}
+  &\log(P(Y = y^*|X = x)) - \log(P(Y = y|X = x)) \\
+  =& \alpha(I(y_{i,j} \neq x_{i,j})-I(y^*_{i,j} \neq x_{i,j}))
+  + 2(1-\alpha)\sum_{v \in V(i,j)}(I(y_{i,j} \neq y_v)-I(y^*_{i,j} \neq y_v))
+ \end{align*}
+$$
+
+```{r}
+n = 50
+p = 0.1
+X = matrix(1, n, n)
+X[1:(n/2),] = -1 # X e a imagem verdadeira
+image(1:n, 1:n, X)
+Y = as.matrix(2*(rbinom(n^2, 1, p) - 0.5))
+dim(Y) = c(n, n) # Y sao os pixels corrompido
+image(1:n, 1:n, Y)
+Z = X*Y # Z e a imagem observada
+image(1:n, 1:n, Z)
+```
+
+Queremos construir um algoritmo de Metropolis-Hastings
+para reconstruir a imagem. Para tal, precisamos adaptar
+o Metropolis-Hastings abaixo de tal forma que
+theta seja uma lista ao invés de um vetor e
+a função tenha dif\_log\_mu ao invés de log\_mu,
+ou seja, calcule diretamente a diferença dos
+log\_mu entre o estado atual e a proposta.
+
+```{r}
+metropolis_hastings = function(rprop, log_dprop, log_mu, theta_1 = 1, B = 10^5)
+{
+  theta = rep(NA, B)
+  theta[1] = theta_1
+  for(ii in 2:B)
+  {
+    theta[ii] = rprop(theta[ii-1])
+    log_L = log_mu(theta[ii]) + log_dprop(theta[ii-1], theta[ii]) -
+      log_mu(theta[ii-1]) -log_dprop(theta[ii], theta[ii-1])
+    if(log(runif(1)) > log_L) theta[ii] = theta[ii-1]
+  }
+  theta
+}
+```

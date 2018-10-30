@@ -9,5 +9,8 @@ parameters {
 	real<lower=0> sigma;
 }
 model {
+  alpha ~ normal(0, 1);
+  beta ~ normal(0, 1);
+  sigma ~ exponential(1);
 	y ~ normal(alpha + beta * x, sigma);
 }

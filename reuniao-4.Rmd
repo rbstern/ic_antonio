@@ -5,8 +5,8 @@ date: "October 30, 2018"
 output: html_document
 ---
 
-Temos $X$ uma imagem observada e
-$Y$ a verdadeira imagem que queremos reconstruir.
+Temos $Y$ uma imagem observada e
+$X$ a verdadeira imagem que queremos reconstruir.
 Ambos são matrizes $n$ por $m$ e
 que assumem valores em $\{0,1\}$
 (pois, a imagem é em preto e branco, por hora).
@@ -48,8 +48,12 @@ p = 0.1
 X = matrix(1, n, n)
 X[1:(n/2),] = -1 # X e a imagem verdadeira
 image(1:n, 1:n, X)
-Y = as.matrix(2*(rbinom(n^2, 1, p) - 0.5))
+Y = as.matrix(2*(rbinom(n^2, 1, 1-p) - 0.5))
 dim(Y) = c(n, n) # Y sao os pixels corrompido
+Y[1,] = 1 # nao queremos que a borda seja corrompida
+Y[,1] = 1
+Y[n,] = 1
+Y[,n] = 1
 image(1:n, 1:n, Y)
 Z = X*Y # Z e a imagem observada
 image(1:n, 1:n, Z)

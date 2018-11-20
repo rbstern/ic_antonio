@@ -13,11 +13,8 @@ image(1:n, 1:n, Y)
 Z = X*Y # Z e a imagem observada
 image(1:n, 1:n, Z)
 
-a = -1
-b = -1
-
-
-
+a = -2
+b = -2
 
 # Alterar um unico pixel de Z como proposta.
 rprop = function(Z)
@@ -58,9 +55,4 @@ metropolis_hastings = function(rprop, dif_log_mu, theta_1 = Z, B = 10^5)
   image(1:n, 1:n, theta[[B]])
 }
 
-metropolis_hastings(rprop, dif_log_mu)
-
-
-
-
-
+imagem = metropolis_hastings(rprop, dif_log_mu)

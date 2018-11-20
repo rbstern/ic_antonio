@@ -13,6 +13,12 @@ image(1:n, 1:n, Y)
 Z = X*Y # Z e a imagem observada
 image(1:n, 1:n, Z)
 
+a = -1
+b = -1
+
+
+
+
 # Alterar um unico pixel de Z como proposta.
 rprop = function(Z)
 {
@@ -24,17 +30,20 @@ rprop = function(Z)
 
 # Ajeitar isso de forma a so depender de i, j, Z e
 # o numero de 1's em Z ao redor de (i,j)
-dif_log_mu = function(Z,Z*,i,j)
-  dif = a*(ifelse(Z[i,j]!=X[i,j],1,0) - ifelse((Z[i,j]!=X[i,j],1,0)) + 
-             2*(1-a)*((ifelse(Z[i,j]!=Z[i+1,j],1,0) - ifelse((Z*[i,j]!=Z[i+1,j],1,0))) +
-                        (ifelse(Z[i,j]!=Z[i-1,j],1,0) - ifelse((Z*[i,j]!=Z[i-1,j],1,0))) +
-                           (ifelse(Z[i,j]!=Z[i,j+1],1,0) - ifelse((Z*[i,j]!=Z[i,j+1],1,0))) +
-                              (ifelse(Z[i,j]!=Z[i,j-1],1,0) - ifelse((Z*[i,j]!=Z[i,j-1],1,0))))
+dif_log_mu = function(Z,i,j)
+{
+  dif = a*ifelse(Z[i,j]!=X[i,j],1,-1) - 
+             4*b*((ifelse(Z[i,j]==Z[i+1,j],1,0)) +
+                        (ifelse(Z[i,j]==Z[i-1,j],1,0)) +
+                           (ifelse(Z[i,j]==Z[i,j+1],1,0)) +
+                              (ifelse(Z[i,j]==Z[i,j-1],1,0))- 2)
+  dif
+}
 
-metropolis_hastings = function(rprop, log_dprop, dif_log_mu, theta_1 = Z, B = 10^5)
+metropolis_hastings = function(rprop, dif_log_mu, theta_1 = Z, B = 10^5)
 {
   theta = as.list(rep(NA, B))
-  theta[[1]] = matrix(1, n, n)
+  theta[[1]] = theta_1 #matrix(1, n, n)
   for(ii in 2:B)
   {
     prop = rprop(theta[[ii-1]])
@@ -43,11 +52,15 @@ metropolis_hastings = function(rprop, log_dprop, dif_log_mu, theta_1 = Z, B = 10
     Z_prop = prop$Z
     theta[[ii]] = Z_prop
     # modificar este pedaco para depender de i_prop, j_prop e Z_prop.
-    log_L = log_mu(theta[ii]) + log_dprop(theta[ii-1], theta[ii]) -
-      log_mu(theta[ii-1]) -log_dprop(theta[ii], theta[ii-1])
+    log_L = dif_log_mu(Z_prop,i_prop,j_prop)
     if(log(runif(1)) > log_L) theta[[ii]] = theta[[ii-1]]
   }
-  theta
+  image(1:n, 1:n, theta[[B]])
 }
 
-image(theta[[B]])
+metropolis_hastings(rprop, dif_log_mu)
+
+
+
+
+

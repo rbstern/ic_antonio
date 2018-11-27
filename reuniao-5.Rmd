@@ -1,0 +1,42 @@
+---
+title: 'reuniao-5'
+author: "Guilherme Antonio"
+date: "20 de novembro de 2018"
+output: html_document
+---
+
+```{r}
+X = (1:100)/10
+g = function(x) (x-0.5)^2
+mu_meio = function(lambda) exp(-lambda*g(0.5))/sum(exp(-lambda*g(X)))
+N = 10^3
+valores = rep(NA, N)
+for(ii in 1:N) valores[ii] = mu_meio(ii)
+plot(valores)
+```
+
+```{r}
+rprop = function(x) ifelse(rbinom(1,1,0.5), x+0.1, x-0.1)
+log_mu = function(x, ii) ifelse((x > 0)*(x < 10), -50*log(ii)*g(x), -Inf)
+
+simulated_annealing = function(B = 10^6)
+{
+  xx = rep(NA, B)
+  xx[1] = sample(X, 1)
+  best = xx[1]
+  for(ii in 2:B)
+  {
+    xx[ii] = rprop(xx[ii-1])
+    if(log_mu(xx[ii], ii) - log_mu(xx[ii-1], ii) < log(runif(1))) xx[ii] = xx[ii-1]
+    if(log_mu(best, ii) < log_mu(xx[ii], ii)) best = xx[ii]
+  }
+  list(xx = xx, best = best)
+}
+
+simulacao = simulated_annealing()
+plot(as.ts(simulacao$xx))
+simulacao$best
+```
+
+Para a proxima reunião, otimizar algumas funcoes interessantes
+usando simulated annealing.

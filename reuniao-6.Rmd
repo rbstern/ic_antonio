@@ -1,0 +1,38 @@
+---
+title: 'reuniao-6'
+author: "Guilherme Antonio"
+date: "04 de junho de 2019"
+output: html_document
+---
+
+```{r}
+ d = 10
+ n = 1000
+ XX = rnorm(d*n)
+ dim(XX) = c(n,d)
+ m_true = 5
+ beta = rnorm(m_true)
+ YY = XX[,1:m_true] %*% beta
+ print(beta)
+ 
+ ld_prior = function(m, beta)
+ 
+ ld_post = function(beta)
+ {
+   
+ }
+ 
+ r_prop = function(beta, tau)
+ {
+   prop_m = sample(c(-1, 1), 1)
+   prop_beta = NULL
+   if(prop_m < 0)
+   {
+     if(length(beta) == 0) return(c(0, beta))
+     return(c(-1, beta[-length(beta)]))
+   }
+   
+   if(length(beta) == d) return(c(0, beta))
+   return(c(1, beta, rnorm(1, 0, tau)))
+ }
+```

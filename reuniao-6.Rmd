@@ -6,33 +6,80 @@ output: html_document
 ---
 
 ```{r}
- d = 10
- n = 1000
- XX = rnorm(d*n)
- dim(XX) = c(n,d)
- m_true = 5
- beta = rnorm(m_true)
- YY = XX[,1:m_true] %*% beta
- print(beta)
+d = 10
+n = 1000
+XX = rnorm(d*n)
+dim(XX) = c(n,d)
+m_true = 5
+beta_true = rnorm(m_true)
+YY = XX[,1:m_true] %*% beta_true + rnorm(n)
+print(beta_true)
+
+ld_prior = function(beta)
+{
+   if(length(beta) == 0) return(-log(d+1))
+   sum(log(dnorm(beta))) - log(d+1)
+}
  
- ld_prior = function(m, beta)
+ld_verossim = function(beta)
+{
+   m = length(beta)
+   if(m == 0) return(sum(log(dnorm(YY))))
+   sum(log(dnorm(YY - as.matrix(XX[,1:m]) %*% beta)))
+}
  
- ld_post = function(beta)
- {
-   
- }
- 
- r_prop = function(beta, tau)
- {
+r_prop = function(beta, tau = 1)
+{
    prop_m = sample(c(-1, 1), 1)
    prop_beta = NULL
    if(prop_m < 0)
    {
-     if(length(beta) == 0) return(c(0, beta))
-     return(c(-1, beta[-length(beta)]))
+      if(length(beta) == 0) return(beta)
+      return(beta[-length(beta)])
    }
    
-   if(length(beta) == d) return(c(0, beta))
-   return(c(1, beta, rnorm(1, 0, tau)))
- }
+   if(length(beta) == d) return(beta)
+   return(c(beta, rnorm(1, 0, tau)))
+}
+
+rjmcmc = function(ld_prior, ld_verossim, r_prop, B = 10^3)
+{
+   betas = matrix(0, nrow = B, ncol = d)
+   ms = rep(NA, B)
+   ms[1] = 0
+   for(ii in 2:B)
+   {
+      this_m = ms[ii-1]
+      this_beta = betas[(ii-1),(1:this_m)]
+      if(this_m == 0) this_beta = numeric()
+      new_beta = r_prop(this_beta)
+      a = ld_prior(new_beta) + ld_verossim(new_beta) - ld_prior(this_beta) - ld_verossim(this_beta)
+      if(length(this_beta) > length(new_beta))
+         a = a + log(dnorm(this_beta[this_m]))
+      if(length(new_beta) > length(this_beta))
+         a = a - log(dnorm(new_beta[this_m + 1]))
+      if(log(runif(1)) < a)
+      {
+         if(length(new_beta) == 0) ms[ii] = 0
+         else
+         {
+            ms[ii] = length(new_beta)
+            betas[ii,] = c(new_beta, rep(0, d-length(new_beta)))
+         }
+      }
+      else
+      {
+         ms[ii] = ms[ii-1]
+         betas[ii,] = betas[ii-1,]
+      }
+   }
+   return(list(m = ms, beta = betas))
+}
+
+test = rjmcmc(ld_prior, ld_verossim, r_prop, B = 10^4)
 ```
+
+# Para a proxima reunião
+- Checar se este codigo esta ok.
+- Tentar fazer um Gibbs ou M-H dentro da mesma dimensão como
+  um 3a possibilidade na proposta.

@@ -30,16 +30,29 @@ ld_verossim = function(beta)
  
 r_prop = function(beta, tau = 1)
 {
-   prop_m = sample(c(-1, 1), 1)
+   prop_m = sample(c(-1, 0, 1), 1)
    prop_beta = NULL
-   if(prop_m < 0)
+   
+   # Proposta de RJMCMC Que remove dimensão
+   if(prop_m == -1)
    {
       if(length(beta) == 0) return(beta)
       return(beta[-length(beta)])
    }
    
-   if(length(beta) == d) return(beta)
-   return(c(beta, rnorm(1, 0, tau)))
+   # Proposta de RJMCMC que adiciona dimensão
+   else if(prop_m == 1)
+   {
+      if(length(beta) == d) return(beta)
+      return(c(beta, rnorm(1, 0, tau)))
+   }
+   
+   # Proposta do tipo Metropolis
+   this_d = length(beta) 
+   if(this_d == 0) return(beta)
+   coord = sample((1:this_d), 1)
+   beta[coord] = beta[coord] + rnorm(1, 0, tau)
+   return(beta)
 }
 
 rjmcmc = function(ld_prior, ld_verossim, r_prop, B = 10^3)
@@ -78,8 +91,4 @@ rjmcmc = function(ld_prior, ld_verossim, r_prop, B = 10^3)
 
 test = rjmcmc(ld_prior, ld_verossim, r_prop, B = 10^4)
 ```
-
-# Para a proxima reunião
-- Checar se este codigo esta ok.
-- Tentar fazer um Gibbs ou M-H dentro da mesma dimensão como
-  um 3a possibilidade na proposta.
+   

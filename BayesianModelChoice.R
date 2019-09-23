@@ -1,33 +1,56 @@
-x= mean(29.2,24.7,32.3,31.3,31.5,24.5,19.9,27.3,27.1,24,33.8,21.5,32.2,22.5,27.5,25.6,34.5,26.2,26.7,21.1,24.1,30.7,32.7,32.6,22.1,25.3,30.8,38.9,22.1,29.2,30.1,31.4,26.7,22.1,30.3,32,23.2,30.3,29.9,20.8,33.2,28.2)
-z = mean(25.4,22.2,32.2,31,30.9,23.9,19.2,27.2,26.3,23.9,33.2,21,29,22,23.8,25.3,34.2,25.7,26.4,20,23.9,30.7,32.6,32.5,20.8,23.1,29.8,38.1,21.3,28.5,29.2,31.4,25.9,21.4,29.8,30.6,22.6,30.3,23.8,18.4,29.4,28.2)
+library(invgamma)
+library(tidyverse)
 
+data = read_csv("./data/carlin1995.csv")
 
-gibbs = function(B = 5000)
+# Trechos a completar
+prop_M = function(prop)
 {
-  data = matrix(NA, nrow = B, ncol = 7)
-  colnames(data) = c("Y", "alpha","beta","sigma","gamma","delta","tau")
-  data[1,] = c(0, 0, 0, 0, 0, 0, 0)
-  for(ii in 2:B)
-  {
-    if(runif(1) > 0.5) 
-      data[ii,] = c((data[ii-1,2] + data[ii-1,3]*x + rnorm(1,0,data[ii-1,4]) ) ,Prior(),Prior(),PriorVar(),PriorGamma(),PriorDelta(),PriorVar())
-    else 
-      data[ii,] = c((data[ii-1,5] + data[ii-1,6]*z + rnorm(1,0,data[ii-1,7]) ),PriorAlpha(),PriorBeta(),PriorVar(),Prior(),Prior(),PriorVar())
-  }
-  data
+  sum(log(dnorm(data$y, prop$alpha + data$x*prop$beta, sqrt(prop$sigma)))) +
+    -
+    sum(log(dnorm(data$y, prop$gamma + data$z*prop$delta, sqrt(prop$tau)))) -
+    
 }
 
+# Trecho a completar
+prop_alpha_beta_sigma = function(prop_atual)
+{
+ 
+}
 
-library(invgamma)
-
+d_alpha_beta_sigma_prior
+d_gamma_delta_tau_prior
 
 Prior = function(){rnorm(1,3000,185)}
 PriorVar = function(){rinvgamma(1,3,scale = 180000)}
-
 PriorAlpha = function(){rnorm(1,3000,52^2)}
 PriorBeta = function(){rnorm(1,185,12^2)}
 PriorGamma = function(){rnorm(1,3000,43^2)}
 PriorDelta = function(){rnorm(1,185,9^2)}
 
+# Trecho a completar
+prop_gamma_delta_tau = function(prop_atual)
+{
+ 
+}
 
-gibb = gibbs()
+gibbs = function(B = 5000)
+{
+  data_simul = tibble(M = rep(NA, B),
+                      alpha = rep(NA, B),
+                      beta = rep(NA, B),
+                      sigma = rep(NA, B),
+                      gamma = rep(NA, B),
+                      delta = rep(NA, B),
+                      tau = rep(NA, B))
+  data_simul[1,] = rep(0, 7)
+  for(ii in 2:B)
+  {
+    prop = data_simul[ii-1,]
+    prop = prop_M(prop)
+    prop = prop_alpha_beta_sigma(prop)
+    prop = prop_gamma_delta_tau(prop)
+    data_simul[ii, ] = prop
+  }
+  data_simul
+}

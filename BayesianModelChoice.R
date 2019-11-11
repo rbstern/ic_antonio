@@ -9,12 +9,46 @@ Pi_0 = 0.5
 Pi_1 = 0.5 
 
 
+Prior1 = function(theta){dnorm(theta,3000,sqrt(10^6))}
+Prior2 = function(theta){dnorm(theta,185,sqrt(10^4))}
+
+
+PriorVar = function(theta){dinvgamma(theta,3,scale = 180000)}
+PriorAlpha = function(alpha){dnorm(alpha,3000,52)}
+PriorBeta = function(beta){dnorm(beta,185,12)}
+PriorGamma = function(gamma){dnorm(gamma,3000,43)}
+PriorDelta = function(delta){dnorm(delta,185,9)}
+
+
+d_alpha_beta_sigma_prior = function(prop, M)
+{
+  if(M == 0){
+    ABS_prior = Prior1(prop$alpha) * Prior2(prop$beta) * PriorVar(prop$sigma)
+  }
+  else{
+    ABS_prior = PriorAlpha(prop$alpha) * PriorBeta(prop$beta) * PriorVar(prop$sigma)
+  }
+  ABS_prior
+}
+
+d_gamma_delta_tau_prior = function(prop, M)
+{
+  if(M == 1){
+    GDT_prior = Prior1(prop$gamma) * Prior2(prop$delta) * PriorVar(prop$tau)
+  }
+  else{
+    GDT_prior =  PriorGamma(prop$gamma) * PriorDelta(prop$delta) * PriorVar(prop$tau)
+  }
+  GDT_prior
+}
+
+
 Sum_Log_0 =function(prop){(sum(log(dnorm(data$y, prop$alpha + data$x*prop$beta, sqrt(prop$sigma)))) + 
-                             sum(log(d_alpha_beta_sigma_prior(prop,0) * d_gamma_delta_tau_prior(prop,0) )) + log(Pi_0))}
+                             (log(d_alpha_beta_sigma_prior(prop,0)) + log(d_gamma_delta_tau_prior(prop,0) )) + log(Pi_0))}
 
 
 Sum_Log_1 =function(prop){sum(log(dnorm(data$y, prop$gamma + data$z*prop$delta, sqrt(prop$tau)))) + 
-  sum(log(d_alpha_beta_sigma_prior(prop,1) * d_gamma_delta_tau_prior(prop,1) )) + log(Pi_1)}
+  log(d_alpha_beta_sigma_prior(prop,1)) + log(d_gamma_delta_tau_prior(prop,1) ) + log(Pi_1)}
 
 
 
@@ -45,14 +79,37 @@ prop_M = function(prop)
 prop    
 }
 
+
+
+
+dnorm(data$y, prop$alpha + data$x*prop$beta, sqrt(prop$sigma))
+
 # Trecho a completar
 prop_alpha_beta_sigma = function(prop)
 {
   if(prop$M == 0) {
-    dnorm(data$y, prop$alpha + data$x*prop$beta, sqrt(prop$sigma)) * 
     
     
-    dnorminvgamma()
+    Sigma2Alpha = (1/10^6 + length(data$y)/prop$sigma)^-1
+    
+    MeanAlpha = Sigma2Alpha*(3000/10^6 + sum(data$y-data$x*prop$beta)/prop$sigma)
+    
+    prop$alpha = rnorm(1, MeanAlpha, sqrt(Sigma2Alpha))
+    
+    
+    
+    Sigma2Beta = (1/10^4 + length(data$y)/prop$sigma)^-1
+      
+    MeanBeta = Sigma2Beta*(185/10^4 + sum(data$y-prop$alpha)/prop$sigma)
+    
+      
+    prop$beta= rnorm(1, MeanBeta, sqrt(Sigma2Beta))
+    
+    AlphaSigma = 3 +length(data$y)/2
+    BetaSigma = 180000 + (sum(data$y - prop$alpha + data$x*prop$beta)^2)/2
+    
+    prop$sigma= rinvgamma(1,AlphaSigma,BetaSigma)
+    
     
   }
   else {
@@ -69,8 +126,28 @@ prop_alpha_beta_sigma = function(prop)
 prop_gamma_delta_tau = function(prop)
 {
   if(prop$M == 1) {
-    dnorm(data$y, prop$alpha + data$x*prop$beta, sqrt(prop$sigma)) * 
+    
+    Sigma2Gamma = (1/10^6 + length(data$y)/prop$tau)^-1
+    
+    MeanGamma = Sigma2Gamma*(3000/10^6 + sum(data$y-data$z*prop$delta)/prop$tau)
+    
+    prop$gamma = rnorm(1, MeanGamma, sqrt(Sigma2Gamma))
+    
+    
+    
+    Sigma2Delta =(1/10^4 + length(data$y)/prop$tau)^-1
       
+    MeanDelta = Sigma2Delta*(185/10^4 + sum(data$y-prop$gamma)/prop$tau)
+      
+      
+    prop$delta= rnorm(1, MeanDelta, sqrt(Sigma2Delta))
+    
+    AlphaTau = 3 +length(data$y)/2
+    BetaTau = 180000 + (sum(data$y - prop$tau + data$z*prop$tau)^2)/2
+    
+    prop$sigma= rinvgamma(1,AlphaTau,BetaTau)
+  
+    
       
   }
   else {
@@ -88,35 +165,7 @@ prop_gamma_delta_tau = function(prop)
 
 
 
-Prior = function(theta){dnorm(theta,3000,sqrt(185))}
-PriorVar = function(theta){dinvgamma(theta,3,scale = 180000)}
-PriorAlpha = function(alpha){dnorm(alpha,3000,52)}
-PriorBeta = function(beta){dnorm(beta,185,12)}
-PriorGamma = function(gamma){nnorm(gamma,3000,43)}
-PriorDelta = function(delta){nnorm(delta,185,9)}
 
-
-d_alpha_beta_sigma_prior = function(prop, M)
-{
-  if(M == 0){
-    ABS_prior = Prior(prop$alpha) * Prior(prop$beta) * PriorVar(prop$sigma)
-  }
-  else{
-    ABS_prior = PriorAlpha(prop$alpha) * PriorBeta(prop$beta) * PriorVar(prop$sigma)
-  }
-  ABS_prior
-}
-  
-d_gamma_delta_tau_prior = function(prop, M)
-{
-  if(M == 1){
-    GDT_prior = Prior(prop$gamma) * Prior(prop$delta) * PriorVar(prop$tau)
-  }
-  else{
-    GDT_prior =  PriorGamma(prop$gamma) * PriorDelta(prop$delta) * PriorVar(prop$tau)
-  }
-  GDT_prior
-}
 
 
 
@@ -130,7 +179,7 @@ gibbs = function(B = 5000)
                       gamma = rep(NA, B),
                       delta = rep(NA, B),
                       tau = rep(NA, B))
-  data_simul[1,] = rep(0, 7)
+  data_simul[1,] = c(0,3000,185,300^2,3000,185,300^2)
   for(ii in 2:B)
   {
     prop = data_simul[ii-1,]
@@ -138,6 +187,7 @@ gibbs = function(B = 5000)
     prop = prop_alpha_beta_sigma(prop)
     prop = prop_gamma_delta_tau(prop)
     data_simul[ii, ] = prop
+    print(prop)
   }
   data_simul
 }

@@ -5,15 +5,16 @@ library(PIGShift)
 
 data = read_csv("./data/carlin1995.csv")
 
+# Prioris para modelos
 Pi_0 = 0.5
 Pi_1 = 0.5 
 
-
+# Prioris para parametros de cada modelo
 Prior1 = function(theta){dnorm(theta,3000,sqrt(10^6))}
 Prior2 = function(theta){dnorm(theta,185,sqrt(10^4))}
-
-
 PriorVar = function(theta){dinvgamma(theta,3,scale = 180000)}
+
+# Pseudo-prioris empiricas
 PriorAlpha = function(alpha){dnorm(alpha,3000,52)}
 PriorBeta = function(beta){dnorm(beta,185,12)}
 PriorGamma = function(gamma){dnorm(gamma,3000,43)}
@@ -22,77 +23,66 @@ PriorDelta = function(delta){dnorm(delta,185,9)}
 
 d_alpha_beta_sigma_prior = function(prop, M)
 {
-  if(M == 0){
-    ABS_prior = Prior1(prop$alpha) * Prior2(prop$beta) * PriorVar(prop$sigma)
-  }
-  else{
-    ABS_prior = PriorAlpha(prop$alpha) * PriorBeta(prop$beta) * PriorVar(prop$sigma)
-  }
-  ABS_prior
+  ifelse(M == 0,
+         Prior1(prop$alpha) * Prior2(prop$beta) * PriorVar(prop$sigma),
+         PriorAlpha(prop$alpha) * PriorBeta(prop$beta) * PriorVar(prop$sigma)
+  )
 }
 
 d_gamma_delta_tau_prior = function(prop, M)
 {
-  if(M == 1){
-    GDT_prior = Prior1(prop$gamma) * Prior2(prop$delta) * PriorVar(prop$tau)
-  }
-  else{
-    GDT_prior =  PriorGamma(prop$gamma) * PriorDelta(prop$delta) * PriorVar(prop$tau)
-  }
-  GDT_prior
+  ifelse(M == 1,
+         Prior1(prop$gamma) * Prior2(prop$delta) * PriorVar(prop$tau),
+         PriorGamma(prop$gamma) * PriorDelta(prop$delta) * PriorVar(prop$tau)
+  )
 }
 
+Sum_Log_0 = function(prop)
+{
+  y = data$y
+  x = data$x
+  alpha = prop$alpha
+  beta = prop$beta
+  sigma = prop$sigma
+  sum(log(dnorm(y, alpha + beta * x, sqrt(sigma)))) + 
+    log(d_alpha_beta_sigma_prior(prop, 0)) + 
+    log(d_gamma_delta_tau_prior(prop, 0)) + 
+    log(Pi_0)
+}
 
-Sum_Log_0 =function(prop){(sum(log(dnorm(data$y, prop$alpha + data$x*prop$beta, sqrt(prop$sigma)))) + 
-                             (log(d_alpha_beta_sigma_prior(prop,0)) + log(d_gamma_delta_tau_prior(prop,0) )) + log(Pi_0))}
+Sum_Log_1 = function(prop)
+{
+  z = data$z
+  y = data$y
+  gamma = prop$gamma
+  delta = prop$delta
+  tau = prop$tau
+  sum(log(dnorm(y, gamma + delta * z, sqrt(tau)))) + 
+    log(d_alpha_beta_sigma_prior(prop, 1)) + 
+    log(d_gamma_delta_tau_prior(prop, 1)) + 
+    log(Pi_1)
+}
 
-
-Sum_Log_1 =function(prop){sum(log(dnorm(data$y, prop$gamma + data$z*prop$delta, sqrt(prop$tau)))) + 
-  log(d_alpha_beta_sigma_prior(prop,1)) + log(d_gamma_delta_tau_prior(prop,1) ) + log(Pi_1)}
-
-
-
-# Trechos a completar
 prop_M = function(prop)
 {
-  if(Sum_Log_0(prop) > Sum_Log_1(prop)){
-    log_prop = Sum_Log_0(prop) - Sum_Log_0(prop) - log1p(exp(Sum_Log_1(prop) - Sum_Log_0(prop) ))
-    
-  }
-  else{
-  log_prop =  Sum_Log_0(prop) - Sum_Log_1(prop) - log1p(exp(Sum_Log_0(prop) - Sum_Log_1(prop)))
-    
-  }
-       
-       
-  if(exp(log_prop) < runif(1)){
-    prop$M = 0
-  }
-  else{ 
-    prop$M = 1
-    }
-       
-    
-    
-    
-    
-prop    
+  U = runif(1, 0, 1)
+  prop$M = as.numeric(log(U/(1-U)) > Sum_Log_0(prop) - Sum_Log_1(prop))
+  prop
 }
 
-
-
-
-dnorm(data$y, prop$alpha + data$x*prop$beta, sqrt(prop$sigma))
-
-# Trecho a completar
+# Trecho que estamos completando
+# Checar Kadane-2011.pdf pg. 308.
 prop_alpha_beta_sigma = function(prop)
 {
+  x = data$x
+  y = data$y
+  n = length(y)
+  
   if(prop$M == 0) {
     
     
-    Sigma2Alpha = (1/10^6 + length(data$y)/prop$sigma)^-1
-    
-    MeanAlpha = Sigma2Alpha*(3000/10^6 + sum(data$y-data$x*prop$beta)/prop$sigma)
+    Sigma2Alpha = 1/(1/10^6 + n/prop$sigma)
+    MeanAlpha = Sigma2Alpha * (3000/10^6 + sum(data$y-data$x*prop$beta)/prop$sigma)
     
     prop$alpha = rnorm(1, MeanAlpha, sqrt(Sigma2Alpha))
     
